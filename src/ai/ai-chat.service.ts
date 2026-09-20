@@ -5,7 +5,11 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ChatOpenAI } from '@langchain/openai';
-import { HumanMessage, SystemMessage, type BaseMessage } from '@langchain/core/messages';
+import {
+  HumanMessage,
+  SystemMessage,
+  type BaseMessage,
+} from '@langchain/core/messages';
 import { HybridRetrievalService } from './hybrid-retrieval.service';
 import { ChunkHit } from '../pipeline/types/pipeline.types';
 import { ChatSessionService } from './chat-session.service';
@@ -75,12 +79,7 @@ export class AiChatService {
     });
   }
 
-  async chat(
-    question: string,
-    topK = 5,
-    user?: AuthUser,
-    sessionId?: string,
-  ) {
+  async chat(question: string, topK = 5, user?: AuthUser, sessionId?: string) {
     const trimmed = question.trim();
     if (!trimmed) {
       return {
@@ -252,7 +251,9 @@ export class AiChatService {
     }
 
     const indexes =
-      cited.size > 0 ? [...cited].sort((a, b) => a - b) : hits.map((_, i) => i + 1);
+      cited.size > 0
+        ? [...cited].sort((a, b) => a - b)
+        : hits.map((_, i) => i + 1);
 
     return indexes.map((index) => this.toSource(index, hits[index - 1]));
   }

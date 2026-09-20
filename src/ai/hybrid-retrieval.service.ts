@@ -30,7 +30,11 @@ export class HybridRetrievalService {
     this.minScore = Number(config.get('RAG_MIN_SCORE', 0.4));
   }
 
-  async retrieve(query: string, topK = 5, user?: AuthUser): Promise<ChunkHit[]> {
+  async retrieve(
+    query: string,
+    topK = 5,
+    user?: AuthUser,
+  ): Promise<ChunkHit[]> {
     const queryVector = await this.embedQuery(query);
     const scope = user
       ? accessFromUser(user)
