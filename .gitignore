@@ -1,4 +1,16 @@
-node_modules/
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+.pytest_cache/
+uv.lock.bak
+
+# 环境与数据
 .env
-dist/
 volumes/
+
+# IDE / 系统
+.idea/
+.vscode/
+.DS_Store

@@ -1,98 +1,70 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Knowledge Hub Backend（Python / FastAPI）
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+企业知识库后端：认证与 RBAC、文档管理（审核流）、文件解析（PDF / DOCX / XLSX / PPTX / TXT / MD）、
+Elasticsearch 全文检索、RAG 混合检索（BM25 + kNN → RRF → DashScope 重排）、
+Agent RAG 流式问答（LangChain / LangGraph + DashScope qwen-plus，SSE）、
+Neo4j 知识图谱、RabbitMQ 异步索引流水线。
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+由原 NestJS 版逐契约迁移（REST 路径 / 请求响应形状 / 中文错误文案 / SSE 流协议均保持一致），
+接口目录见根目录 `curl*.md`、`agentic-rag.md`、`chat-memory.md`。
 
-## Description
+## 技术栈
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+| 层 | 选型 |
+|---|---|
+| Web | FastAPI + uvicorn（端口 3000，无全局前缀） |
+| 校验 | Pydantic v2（`extra='forbid'`，错误体兼容 Nest 形状） |
+| PostgreSQL | SQLAlchemy 2.0 async + asyncpg（schema 以 `init-scripts/postgresql/init.sql` 为准，不做 ORM 迁移） |
+| MongoDB | Motor（`document_content` 正文） |
+| Redis | redis.asyncio（重置码 / 激活 token / 对话短期记忆） |
+| RabbitMQ | aio-pika（3 topic exchange / 3 队列 / 6 路由键） |
+| Elasticsearch | elasticsearch[async] 8.17（`kh_document` + `kh_chunk` dense_vector，IK 分词） |
+| Neo4j | neo4j AsyncGraphDatabase（KnowledgeDocument / DocumentChunk / KnowledgeEntity） |
+| AI | langchain 1.x（`create_agent` + Summarization/ModelCallLimit 中间件）、langchain-openai（DashScope 兼容口） |
+| 对象存储 | boto3（RustFS，S3 兼容） |
+| 邮件 | aiosmtplib |
 
-## Project setup
-
-```bash
-$ pnpm install
-```
-
-## Compile and run the project
+## 快速开始
 
 ```bash
-# development
-$ pnpm run start
+# 1. 基础设施（postgres / mongo / redis / rabbitmq / es / neo4j / rustfs）
+docker compose up -d
 
-# watch mode
-$ pnpm run start:dev
+# 2. 配置环境变量（Key 按需填：OPENAI_API_KEY / EMBEDDING_API_KEY / BOCHA_API_KEY / MEM0_API_KEY）
+cp .env.example .env
 
-# production mode
-$ pnpm run start:prod
+# 3. 安装依赖并启动（uv，Python 3.12）
+uv sync
+uv run uvicorn app.main:app --port 3000 --reload
+
+# 4. 测试
+uv run pytest
 ```
 
-## Run tests
+种子账号（见 `init-scripts/postgresql/init.sql`）：`admin` / `reviewer` / `user`，密码均为 `123456`。
 
-```bash
-# unit tests
-$ pnpm run test
+> 说明：RAG 向量化、KG 抽取、对话生成需要 `OPENAI_API_KEY`（DashScope 兼容）；
+> 未配置时这些能力软降级（与原版一致），其余功能不受影响。
+> 各外部存储均可用 `*_ENABLED=false` 关闭。
 
-# e2e tests
-$ pnpm run test:e2e
+## 目录结构
 
-# test coverage
-$ pnpm run test:cov
 ```
-
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ pnpm install -g @nestjs/mau
-$ mau deploy
+app/
+├── main.py             # 入口：CORS、异常处理器、lifespan（ES 索引 / Neo4j / RustFS / RabbitMQ）
+├── core/               # config（同名环境变量）snowflake errors security pagination ids
+├── db/                 # postgres / mongo / redis 客户端 + models（12 张表）
+├── common/             # 常量（角色/权限）序列化、utcnow
+└── modules/
+    ├── auth/           # JWT 鉴权依赖链、注册/登录/刷新、邮箱激活、密码重置
+    ├── users/          # 用户 / 角色 / 权限 RBAC
+    ├── teams/          # 团队树与成员（裸数组 body）
+    ├── documents/      # 文档 CRUD、状态机、审核流、六种文件解析器
+    ├── storage/        # RustFS 上传
+    ├── search/         # POST /search（IK 高亮）
+    ├── pipeline/       # 分块 / 向量化 / ES 双索引 / KG 抽取 / Neo4j 建图 / 编排器
+    ├── mq/             # RabbitMQ 拓扑、发布者、消费者
+    ├── graph/          # 图谱四个读接口
+    └── ai/             # 混合检索、重排、意图改写、Agent（4 工具）、SSE 流式、会话、记忆
+tests/                  # 单元测试（雪花 ID / 分块 / RRF / 引用 / SSE 帧协议等）
 ```
-
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
