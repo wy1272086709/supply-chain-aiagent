@@ -38,13 +38,17 @@ async def parse_pdf(
     reader = PdfReader(io.BytesIO(data))
     page_count = len(reader.pages)
 
-    # ---------- 1. 文本：按页取出 ----------
-    page_texts: list[str] = []
-    for page in reader.pages:
-        try:
-            page_texts.append((page.extract_text() or "").strip())
-        except Exception:  # noqa: BLE001
-            page_texts.append("")
+    # ---------- 1. 文本：按页取出（CPU 密集，放线程池避免阻塞事件循环） ----------
+    def _extract_texts() -> list[str]:
+        texts: list[str] = []
+        for page in reader.pages:
+            try:
+                texts.append((page.extract_text() or "").strip())
+            except Exception:  # noqa: BLE001
+                texts.append("")
+        return texts
+
+    page_texts: list[str] = await asyncio.to_thread(_extract_texts)
 
     # ---------- 2. 图片（可选）：提取 → 过滤小图 → 上传 ----------
     page_image_urls: dict[int, list[str]] = {}

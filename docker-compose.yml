@@ -14,7 +14,7 @@ services:
         - ${DOCKER_VOLUME_DIRECTORY:-.}/volumes/postgres:/var/lib/postgresql/data
         - ./init-scripts/postgresql:/docker-entrypoint-initdb.d
       healthcheck:
-        test: ["CMD-SHELL", "pg_isready -U user -d hello_pg"]
+        test: ["CMD-SHELL", "pg_isready -U user -d knowledge_hub"]
         interval: 5s
         timeout: 5s
         retries: 5
@@ -53,10 +53,12 @@ services:
       - ${DOCKER_VOLUME_DIRECTORY:-.}/volumes/mongo:/data/db
       - ./init-scripts/mongodb:/docker-entrypoint-initdb.d
     healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')", "-u", "mongo_user", "-p", "mongo_pass123", "--authenticationDatabase", "admin"]
-      interval: 10s
-      timeout: 10s
+      # ping 无需认证（驱动健康探测同款），省掉高负载下 2s+ 的 SCRAM 握手
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 15s
+      timeout: 30s
       retries: 5
+      start_period: 30s
 
   # MongoDB Web GUI: mongo-express
   mongo-express:
@@ -123,8 +125,11 @@ services:
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
+      # 关闭 Erlang 调度器 busy-wait：Docker 里空载烧满 CPU 的已知问题（3.13 + 多核 VM 尤甚）
+      RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: "+sbwt none +sbwtdcpu none +sbwtdio none"
     volumes:
       - ${DOCKER_VOLUME_DIRECTORY:-.}/volumes/rabbitmq:/var/lib/rabbitmq
+      - ./rabbitmq.conf:/etc/rabbitmq/conf.d/99-watermark.conf:ro
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
       interval: 10s

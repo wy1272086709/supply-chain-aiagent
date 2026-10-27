@@ -178,18 +178,30 @@ async def chat(question: str, top_k: int = 5, user: dict | None = None, session_
     mem_hits = await mem_hits_task
 
     if plan["intent"] == "kb" and kb_insufficient and not has_graph:
-        empty_answer = "知识库里没有相关内容。"
-        session = None
-        if user:
-            factory = get_session_factory()
-            async with factory() as db:
-                session = await sessions.append_turn(
-                    db, user["userId"], session_id, trimmed, empty_answer, []
-                )
-            await short_memory.append_turn(user["userId"], session.id, history, trimmed, empty_answer)
-            asyncio.create_task(long_memory.remember_turn(user["userId"], session.id, trimmed, empty_answer))
-        return {"sessionId": (session.id if session else session_id) or None,
-                "answer": empty_answer, "sources": []}
+        # 闸门误杀兜底：判"不切题"但召回非空时，带原召回继续作答。
+        # 生成 prompt 只允许依据给定资料作答，资料确实无法支撑时模型会自行说明，避免 rank=1 的正确召回被整批丢弃。
+        raw_hits = (retrieved or {}).get("rawHits") or []
+        if raw_hits:
+            logger.warning(
+                "检索闸门判不切题但有 %d 条召回，回退原召回作答：%s",
+                len(raw_hits),
+                trimmed[:40],
+            )
+            hits = raw_hits
+            kb_insufficient = False
+        else:
+            empty_answer = "知识库里没有相关内容。"
+            session = None
+            if user:
+                factory = get_session_factory()
+                async with factory() as db:
+                    session = await sessions.append_turn(
+                        db, user["userId"], session_id, trimmed, empty_answer, []
+                    )
+                await short_memory.append_turn(user["userId"], session.id, history, trimmed, empty_answer)
+                asyncio.create_task(long_memory.remember_turn(user["userId"], session.id, trimmed, empty_answer))
+            return {"sessionId": (session.id if session else session_id) or None,
+                    "answer": empty_answer, "sources": []}
 
     llm = _get_llm()
     if llm is None:

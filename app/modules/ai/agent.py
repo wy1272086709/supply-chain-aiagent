@@ -172,7 +172,7 @@ def create_turn_agent(user: dict, top_k: int, persist_sources: list[dict], emitt
 
     if plan["allowRetrieve"]:
 
-        @tool(name="retrieve_knowledge", description=RETRIEVE_KNOWLEDGE_DESCRIPTION, args_schema=RetrieveKnowledgeInput)
+        @tool("retrieve_knowledge", description=RETRIEVE_KNOWLEDGE_DESCRIPTION, args_schema=RetrieveKnowledgeInput)
         async def retrieve_knowledge(query: str, topK: int | None = None) -> dict:
             if state["retrieve_count"] >= 2:
                 return {
@@ -211,7 +211,7 @@ def create_turn_agent(user: dict, top_k: int, persist_sources: list[dict], emitt
                 {"eval": result["eval"]},
             )
 
-        @tool(name="rewrite_query", description=REWRITE_QUERY_DESCRIPTION, args_schema=RewriteQueryInput)
+        @tool("rewrite_query", description=REWRITE_QUERY_DESCRIPTION, args_schema=RewriteQueryInput)
         async def rewrite_query(focus: str | None = None) -> dict:
             last = state["last_retrieve"]
             if not last:
@@ -239,7 +239,7 @@ def create_turn_agent(user: dict, top_k: int, persist_sources: list[dict], emitt
 
     if plan["allowGraph"]:
 
-        @tool(name="retrieve_graph", description=RETRIEVE_GRAPH_DESCRIPTION, args_schema=RetrieveGraphInput)
+        @tool("retrieve_graph", description=RETRIEVE_GRAPH_DESCRIPTION, args_schema=RetrieveGraphInput)
         async def retrieve_graph(query: str) -> dict:
             keywords = [*plan["graphQueries"]]
             trimmed = (query or "").strip()
@@ -260,7 +260,7 @@ def create_turn_agent(user: dict, top_k: int, persist_sources: list[dict], emitt
 
     if plan["allowWeb"]:
 
-        @tool(name="web_search", description=WEB_SEARCH_DESCRIPTION, args_schema=WebSearchInput)
+        @tool("web_search", description=WEB_SEARCH_DESCRIPTION, args_schema=WebSearchInput)
         async def web_search_tool(query: str, count: int | None = None) -> dict:
             return await web_search.search(query, count if count is not None else 5)
 
@@ -273,8 +273,8 @@ def create_turn_agent(user: dict, top_k: int, persist_sources: list[dict], emitt
         middleware=[
             SummarizationMiddleware(
                 model=compact_llm,
-                trigger={"messages": 12},
-                keep={"messages": 6},
+                trigger=("messages", 12),
+                keep=("messages", 6),
                 summary_prompt=(
                     "用中文简洁总结对话：话题、已确认结论、待办。不要写入知识库条文。\n\n待摘要的对话：\n{messages}\n\n摘要："
                 ),

@@ -4,14 +4,11 @@
 """
 
 from __future__ import annotations
-
 import logging
 import re
 from datetime import datetime, timezone
-
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-
 from app.core.config import get_settings
 from app.core.errors import BadRequestError, ForbiddenError, NotFoundError
 from app.core.snowflake import next_snowflake_id
@@ -338,6 +335,11 @@ async def upload_and_create_document(
         )
 
     logger.info("上传并解析文件：name=%s, size=%d, ext=%s", original_filename, len(data), extension)
+
+    # 解析可能长达数十秒，期间不占用池化连接（否则空闲连接被网络层断掉后
+    # commit 报 connection is closed）。close 只归还连接，session 仍可用，
+    # 后续 create() 会经 pool_pre_ping 重新取一条健康连接。
+    await db.close()
 
     try:
         parsed_content = await file_parser.parse(

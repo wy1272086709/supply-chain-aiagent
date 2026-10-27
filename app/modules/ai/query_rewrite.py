@@ -55,6 +55,9 @@ ROUTE_PROMPT = (
     "## 易混\n"
     "- 「我是哪个部门 / 以后回答短一点」→ profile\n"
     "- 「预算审核员属于哪个部门」→ kb，不要因为出现「部门」就判 profile\n"
+    "- 「体积重怎么算 / 运费多少 / 附加费 / 账期 / 时效 / 折扣」→ kb：涉及公司费率、时限、金额的问题，"
+    "即使概念是行业通用的，具体数字也以内部手册为准，严禁判 web\n"
+    "- 判 web 的标准：答案与本公司制度完全无关（新闻、股价、天气、公开常识），但凡要引用公司自己的数字就是 kb\n"
     "- 记忆里的用户部门不能改变本题意图\n"
     "\n"
     "## standalone_query\n"
@@ -149,7 +152,7 @@ def _summarize_hits(hits: list[dict], limit: int = 5) -> str:
     lines = []
     for i, hit in enumerate(hits[:limit]):
         heading = f" / {hit['heading']}" if hit.get("heading") else ""
-        snippet = re.sub(r"\s+", " ", hit.get("content") or "").strip()[:180]
+        snippet = re.sub(r"\s+", " ", hit.get("content") or "").strip()[:500]  # 180 字时表格类规则常被截断，导致切题评估误杀
         score = f"{hit['score']:.2f}" if isinstance(hit.get("score"), (int, float)) else "-"
         lines.append(f"{i + 1}. {hit.get('documentTitle')}{heading}（分={score}）\n{snippet}")
     return "\n".join(lines)

@@ -26,7 +26,6 @@ def _get_embeddings():
         raise RuntimeError("未配置 EMBEDDING_API_KEY / DASHSCOPE_API_KEY / OPENAI_API_KEY")
 
     configured_batch = cfg.embedding_batch_size
-    batch_size = min(configured_batch if configured_batch > 0 else 10, 10)
     if configured_batch > 10:
         logger.warning("EMBEDDING_BATCH_SIZE=%d 超过 DashScope 上限，已钳制为 10", configured_batch)
 
@@ -34,12 +33,16 @@ def _get_embeddings():
         api_key=api_key,
         model=cfg.embedding_model,
         dimensions=cfg.embedding_dimension,
-        batch_size=batch_size,
-        strip_new_lines=False,  # Markdown chunk 保留换行
         base_url=cfg.embedding_base_url,
         check_embedding_ctx_length=False,  # 避免 tiktoken 分片改写 DashScope 请求
     )
     return _embeddings
+
+
+def _dashscope_batch_limit() -> int:
+    """DashScope text-embedding-v3 单批 ≤10 条；langchain-openai 1.x 已移除 batch_size 参数，分片在这里做。"""
+    configured = get_settings().embedding_batch_size
+    return min(configured if configured > 0 else 10, 10)
 
 
 async def embed(text: str) -> list[float]:
@@ -50,5 +53,9 @@ async def embed(text: str) -> list[float]:
 async def embed_batch(texts: list[str]) -> list[list[float]]:
     if not texts:
         return []
-    vectors = await _get_embeddings().aembed_documents(texts)
+    vectors: list[list[float]] = []
+    embeddings = _get_embeddings()
+    limit = _dashscope_batch_limit()
+    for i in range(0, len(texts), limit):
+        vectors.extend(await embeddings.aembed_documents(texts[i : i + limit]))
     return vectors

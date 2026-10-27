@@ -46,3 +46,8 @@ dev = [
 testpaths = ["tests"]
 asyncio_mode = "auto"
 pythonpath = ["."]
+
+[tool.uv.workspace]
+members = [
+    "demo",
+]

@@ -1,0 +1,730 @@
+{
+ "CS-L1-01/search": {
+  "embedding": {
+   "calls": 1,
+   "in": 19,
+   "out": 0,
+   "total": 19
+  },
+  "rerank": {
+   "calls": 1,
+   "in": 0,
+   "out": 0,
+   "total": 4987
+  }
+ },
+ "CS-L1-01/chat": {
+  "router": {
+   "calls": 1,
+   "in": 807,
+   "out": 43,
+   "total": 850
+  },
+  "embedding": {
+   "calls": 1,
+   "in": 14,
+   "out": 0,
+   "total": 14
+  },
+  "rerank": {
+   "calls": 1,
+   "in": 0,
+   "out": 0,
+   "total": 5070
+  },
+  "grader": {
+   "calls": 1,
+   "in": 1397,
+   "out": 88,
+   "total": 1485
+  },
+  "generation": {
+   "calls": 1,
+   "in": 1237,
+   "out": 82,
+   "total": 1319
+  }
+ },
+ "CS-L1-03/search": {
+  "embedding": {
+   "calls": 1,
+   "in": 19,
+   "out": 0,
+   "total": 19
+  },
+  "rerank": {
+   "calls": 1,
+   "in": 0,
+   "out": 0,
+   "total": 4783
+  }
+ },
+ "CS-L1-03/chat": {
+  "router": {
+   "calls": 1,
+   "in": 806,
+   "out": 44,
+   "total": 850
+  },
+  "embedding": {
+   "calls": 1,
+   "in": 14,
+   "out": 0,
+   "total": 14
+  },
+  "rerank": {
+   "calls": 1,
+   "in": 0,
+   "out": 0,
+   "total": 4491
+  },
+  "grader": {
+   "calls": 1,
+   "in": 1233,
+   "out": 49,
+   "total": 1282
+  },
+  "generation": {
+   "calls": 1,
+   "in": 1091,
+   "out": 33,
+   "total": 1124
+  }
+ },
+ "CS-L2-01/search": {
+  "embedding": {
+   "calls": 1,
+   "in": 28,
+   "out": 0,
+   "total": 28
+  },
+  "rerank": {
+   "calls": 1,
+   "in": 0,
+   "out": 0,
+   "total": 5618
+  }
+ },
+ "CS-L2-01/chat": {
+  "router": {
+   "calls": 1,
+   "in": 817,
+   "out": 47,
+   "total": 864
+  },
+  "embedding": {
+   "calls": 1,
+   "in": 13,
+   "out": 0,
+   "total": 13
+  },
+  "rerank": {
+   "calls": 1,
+   "in": 0,
+   "out": 0,
+   "total": 5487
+  },
+  "grader": {
+   "calls": 1,
+   "in": 1114,
+   "out": 84,
+   "total": 1198
+  },
+  "generation": {
+   "calls": 1,
+   "in": 975,
+   "out": 189,
+   "total": 1164
+  }
+ },
+ "CS-L2-03/search": {
+  "embedding": {
+   "calls": 1,
+   "in": 25,
+   "out": 0,
+   "total": 25
+  },
+  "rerank": {
+   "calls": 1,
+   "in": 0,
+   "out": 0,
+   "total": 5810
+  }
+ },
+ "CS-L2-03/chat": {
+  "router": {
+   "calls": 1,
+   "in": 818,
+   "out": 43,
+   "total": 861
+  },
+  "embedding": {
+   "calls": 1,
+   "in": 10,
+   "out": 0,
+   "total": 10
+  },
+  "rerank": {
+   "calls": 1,
+   "in": 0,
+   "out": 0,
+   "total": 4507
+  },
+  "grader": {
+   "calls": 1,
+   "in": 1371,
+   "out": 97,
+   "total": 1468
+  },
+  "generation": {
+   "calls": 1,
+   "in": 1205,
+   "out": 71,
+   "total": 1276
+  }
+ },
+ "CS-L3-01/search": {
+  "embedding": {
+   "calls": 1,
+   "in": 27,
+   "out": 0,
+   "total": 27
+  },
+  "rerank": {
+   "calls": 1,
+   "in": 0,
+   "out": 0,
+   "total": 5453
+  }
+ },
+ "CS-L3-01/chat": {
+  "router": {
+   "calls": 1,
+   "in": 820,
+   "out": 45,
+   "total": 865
+  },
+  "embedding": {
+   "calls": 1,
+   "in": 11,
+   "out": 0,
+   "total": 11
+  },
+  "rerank": {
+   "calls": 1,
+   "in": 0,
+   "out": 0,
+   "total": 5146
+  },
+  "grader": {
+   "calls": 1,
+   "in": 1164,
+   "out": 93,
+   "total": 1257
+  },
+  "generation": {
+   "calls": 1,
+   "in": 1013,
+   "out": 113,
+   "total": 1126
+  }
+ },
+ "CS-L4-01/search": {
+  "embedding": {
+   "calls": 1,
+   "in": 32,
+   "out": 0,
+   "total": 32
+  },
+  "rerank": {
+   "calls": 1,
+   "in": 0,
+   "out": 0,
+   "total": 6070
+  }
+ },
+ "CS-L4-01/chat": {
+  "router": {
+   "calls": 1,
+   "in": 829,
+   "out": 55,
+   "total": 884
+  },
+  "embedding": {
+   "calls": 1,
+   "in": 16,
+   "out": 0,
+   "total": 16
+  },
+  "rerank": {
+   "calls": 1,
+   "in": 0,
+   "out": 0,
+   "total": 5145
+  },
+  "grader": {
+   "calls": 1,
+   "in": 1382,
+   "out": 78,
+   "total": 1460
+  },
+  "generation": {
+   "calls": 1,
+   "in": 1220,
+   "out": 124,
+   "total": 1344
+  }
+ },
+ "CS-L5-01/search": {
+  "embedding": {
+   "calls": 1,
+   "in": 14,
+   "out": 0,
+   "total": 14
+  },
+  "rerank": {
+   "calls": 1,
+   "in": 0,
+   "out": 0,
+   "total": 4858
+  }
+ },
+ "CS-L5-01/chat": {
+  "router": {
+   "calls": 1,
+   "in": 805,
+   "out": 39,
+   "total": 844
+  },
+  "embedding": {
+   "calls": 2,
+   "in": 24,
+   "out": 0,
+   "total": 24
+  },
+  "rerank": {
+   "calls": 2,
+   "in": 0,
+   "out": 0,
+   "total": 9552
+  },
+  "grader": {
+   "calls": 2,
+   "in": 1464,
+   "out": 96,
+   "total": 1560
+  },
+  "rewriter": {
+   "calls": 1,
+   "in": 748,
+   "out": 24,
+   "total": 772
+  },
+  "generation": {
+   "calls": 1,
+   "in": 156,
+   "out": 19,
+   "total": 175
+  }
+ },
+ "ST-L1-02/search": {
+  "embedding": {
+   "calls": 1,
+   "in": 21,
+   "out": 0,
+   "total": 21
+  },
+  "rerank": {
+   "calls": 1,
+   "in": 0,
+   "out": 0,
+   "total": 5903
+  }
+ },
+ "ST-L1-02/chat": {
+  "router": {
+   "calls": 1,
+   "in": 812,
+   "out": 53,
+   "total": 865
+  },
+  "embedding": {
+   "calls": 1,
+   "in": 17,
+   "out": 0,
+   "total": 17
+  },
+  "rerank": {
+   "calls": 1,
+   "in": 0,
+   "out": 0,
+   "total": 4525
+  },
+  "grader": {
+   "calls": 1,
+   "in": 1055,
+   "out": 56,
+   "total": 1111
+  },
+  "generation": {
+   "calls": 1,
+   "in": 900,
+   "out": 57,
+   "total": 957
+  }
+ },
+ "ST-L2-01/search": {
+  "embedding": {
+   "calls": 1,
+   "in": 28,
+   "out": 0,
+   "total": 28
+  },
+  "rerank": {
+   "calls": 1,
+   "in": 0,
+   "out": 0,
+   "total": 5071
+  }
+ },
+ "ST-L2-01/chat": {
+  "router": {
+   "calls": 1,
+   "in": 818,
+   "out": 53,
+   "total": 871
+  },
+  "embedding": {
+   "calls": 1,
+   "in": 19,
+   "out": 0,
+   "total": 19
+  },
+  "rerank": {
+   "calls": 1,
+   "in": 0,
+   "out": 0,
+   "total": 5328
+  },
+  "grader": {
+   "calls": 1,
+   "in": 925,
+   "out": 61,
+   "total": 986
+  },
+  "generation": {
+   "calls": 1,
+   "in": 775,
+   "out": 136,
+   "total": 911
+  }
+ },
+ "ST-L3-02/search": {
+  "embedding": {
+   "calls": 1,
+   "in": 13,
+   "out": 0,
+   "total": 13
+  },
+  "rerank": {
+   "calls": 1,
+   "in": 0,
+   "out": 0,
+   "total": 4887
+  }
+ },
+ "ST-L3-02/chat": {
+  "router": {
+   "calls": 1,
+   "in": 803,
+   "out": 39,
+   "total": 842
+  },
+  "embedding": {
+   "calls": 1,
+   "in": 9,
+   "out": 0,
+   "total": 9
+  },
+  "rerank": {
+   "calls": 1,
+   "in": 0,
+   "out": 0,
+   "total": 5186
+  },
+  "grader": {
+   "calls": 1,
+   "in": 966,
+   "out": 80,
+   "total": 1046
+  },
+  "generation": {
+   "calls": 1,
+   "in": 835,
+   "out": 82,
+   "total": 917
+  }
+ },
+ "OP-L1-02/search": {
+  "embedding": {
+   "calls": 1,
+   "in": 8,
+   "out": 0,
+   "total": 8
+  },
+  "rerank": {
+   "calls": 1,
+   "in": 0,
+   "out": 0,
+   "total": 5324
+  }
+ },
+ "OP-L1-02/chat": {
+  "router": {
+   "calls": 1,
+   "in": 799,
+   "out": 32,
+   "total": 831
+  },
+  "embedding": {
+   "calls": 1,
+   "in": 5,
+   "out": 0,
+   "total": 5
+  },
+  "rerank": {
+   "calls": 1,
+   "in": 0,
+   "out": 0,
+   "total": 5554
+  },
+  "grader": {
+   "calls": 1,
+   "in": 1266,
+   "out": 60,
+   "total": 1326
+  },
+  "generation": {
+   "calls": 1,
+   "in": 1048,
+   "out": 40,
+   "total": 1088
+  }
+ },
+ "OP-L2-01/search": {
+  "embedding": {
+   "calls": 1,
+   "in": 16,
+   "out": 0,
+   "total": 16
+  },
+  "rerank": {
+   "calls": 1,
+   "in": 0,
+   "out": 0,
+   "total": 5388
+  }
+ },
+ "OP-L2-01/chat": {
+  "router": {
+   "calls": 1,
+   "in": 808,
+   "out": 42,
+   "total": 850
+  },
+  "embedding": {
+   "calls": 1,
+   "in": 10,
+   "out": 0,
+   "total": 10
+  },
+  "rerank": {
+   "calls": 1,
+   "in": 0,
+   "out": 0,
+   "total": 5511
+  },
+  "grader": {
+   "calls": 1,
+   "in": 628,
+   "out": 56,
+   "total": 684
+  },
+  "generation": {
+   "calls": 1,
+   "in": 422,
+   "out": 17,
+   "total": 439
+  }
+ },
+ "OP-L3-01/search": {
+  "embedding": {
+   "calls": 1,
+   "in": 23,
+   "out": 0,
+   "total": 23
+  },
+  "rerank": {
+   "calls": 1,
+   "in": 0,
+   "out": 0,
+   "total": 5055
+  }
+ },
+ "OP-L3-01/chat": {
+  "router": {
+   "calls": 1,
+   "in": 817,
+   "out": 42,
+   "total": 859
+  },
+  "embedding": {
+   "calls": 1,
+   "in": 9,
+   "out": 0,
+   "total": 9
+  },
+  "rerank": {
+   "calls": 1,
+   "in": 0,
+   "out": 0,
+   "total": 4471
+  },
+  "grader": {
+   "calls": 1,
+   "in": 691,
+   "out": 82,
+   "total": 773
+  },
+  "generation": {
+   "calls": 1,
+   "in": 551,
+   "out": 42,
+   "total": 593
+  }
+ },
+ "OP-L4-01/search": {
+  "embedding": {
+   "calls": 1,
+   "in": 26,
+   "out": 0,
+   "total": 26
+  },
+  "rerank": {
+   "calls": 1,
+   "in": 0,
+   "out": 0,
+   "total": 5129
+  }
+ },
+ "OP-L4-01/chat": {
+  "router": {
+   "calls": 1,
+   "in": 819,
+   "out": 58,
+   "total": 877
+  },
+  "embedding": {
+   "calls": 1,
+   "in": 22,
+   "out": 0,
+   "total": 22
+  },
+  "rerank": {
+   "calls": 1,
+   "in": 0,
+   "out": 0,
+   "total": 5449
+  },
+  "grader": {
+   "calls": 1,
+   "in": 1055,
+   "out": 89,
+   "total": 1144
+  },
+  "generation": {
+   "calls": 1,
+   "in": 842,
+   "out": 123,
+   "total": 965
+  }
+ },
+ "CS-MT-01/search": {
+  "embedding": {
+   "calls": 1,
+   "in": 16,
+   "out": 0,
+   "total": 16
+  },
+  "rerank": {
+   "calls": 1,
+   "in": 0,
+   "out": 0,
+   "total": 5310
+  }
+ },
+ "CS-MT-01/chat": {
+  "router": {
+   "calls": 1,
+   "in": 805,
+   "out": 39,
+   "total": 844
+  },
+  "embedding": {
+   "calls": 1,
+   "in": 10,
+   "out": 0,
+   "total": 10
+  },
+  "rerank": {
+   "calls": 1,
+   "in": 0,
+   "out": 0,
+   "total": 4920
+  },
+  "grader": {
+   "calls": 1,
+   "in": 1316,
+   "out": 58,
+   "total": 1374
+  },
+  "generation": {
+   "calls": 1,
+   "in": 1088,
+   "out": 65,
+   "total": 1153
+  }
+ },
+ "CS-MT-01#2/chat": {
+  "router": {
+   "calls": 1,
+   "in": 885,
+   "out": 43,
+   "total": 928
+  },
+  "embedding": {
+   "calls": 1,
+   "in": 13,
+   "out": 0,
+   "total": 13
+  },
+  "rerank": {
+   "calls": 1,
+   "in": 0,
+   "out": 0,
+   "total": 4904
+  },
+  "grader": {
+   "calls": 1,
+   "in": 1333,
+   "out": 62,
+   "total": 1395
+  },
+  "generation": {
+   "calls": 1,
+   "in": 1185,
+   "out": 127,
+   "total": 1312
+  }
+ }
+}

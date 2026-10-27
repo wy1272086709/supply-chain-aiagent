@@ -93,13 +93,23 @@ async def retrieve_until_relevant(
     if on_eval:
         await on_eval(first["eval"])
     if first["eval"]["ok"] or first["eval"]["reason"] == "error":
-        return {"hits": first["hits"], "eval": first["eval"], "usedQuery": first["usedQuery"]}
+        return {
+            "hits": first["hits"],
+            "eval": first["eval"],
+            "usedQuery": first["usedQuery"],
+            "rawHits": first["rawHits"],
+        }
 
     retry_query = await query_rewrite.rewrite_after_retrieve(
         question, first["usedQuery"], first["grade"], first["rawHits"]
     )
     if not retry_query:
-        return {"hits": [], "eval": first["eval"], "usedQuery": first["usedQuery"]}
+        return {
+            "hits": [],
+            "eval": first["eval"],
+            "usedQuery": first["usedQuery"],
+            "rawHits": first["rawHits"],
+        }
 
     if on_rewrite:
         await on_rewrite(retry_query)
@@ -113,4 +123,9 @@ async def retrieve_until_relevant(
     )
     if on_eval:
         await on_eval(second["eval"])
-    return {"hits": second["hits"], "eval": second["eval"], "usedQuery": second["usedQuery"]}
+    return {
+        "hits": second["hits"],
+        "eval": second["eval"],
+        "usedQuery": second["usedQuery"],
+        "rawHits": second["rawHits"],
+    }
