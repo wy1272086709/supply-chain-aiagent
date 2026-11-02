@@ -106,6 +106,9 @@ class UiStreamEmitter:
     def tool_output_available(self, tool_call_id: str, output) -> None:
         self.write({"type": "tool-output-available", "toolCallId": tool_call_id, "output": output})
 
+    def tool_output_error(self, tool_call_id: str, error_text: str) -> None:
+        self.write({"type": "tool-output-error", "toolCallId": tool_call_id, "errorText": error_text})
+
     # ---------------- 状态查询 ----------------
 
     @property

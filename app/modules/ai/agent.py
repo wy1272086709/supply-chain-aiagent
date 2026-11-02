@@ -167,11 +167,12 @@ def create_turn_agent(user: dict, top_k: int, persist_sources: list[dict], emitt
     from langchain.agents.middleware import ModelCallLimitMiddleware, SummarizationMiddleware
     from langchain_core.tools import tool
 
+    from app.modules.ai.trace_log import TraceLogMiddleware
+
     tools = []
     state = {"retrieve_count": 0, "last_retrieve": None}
 
     if plan["allowRetrieve"]:
-
         @tool("retrieve_knowledge", description=RETRIEVE_KNOWLEDGE_DESCRIPTION, args_schema=RetrieveKnowledgeInput)
         async def retrieve_knowledge(query: str, topK: int | None = None) -> dict:
             if state["retrieve_count"] >= 2:
@@ -280,6 +281,7 @@ def create_turn_agent(user: dict, top_k: int, persist_sources: list[dict], emitt
                 ),
             ),
             ModelCallLimitMiddleware(run_limit=8, exit_behavior="end"),
+            TraceLogMiddleware(),
         ],
     )
 

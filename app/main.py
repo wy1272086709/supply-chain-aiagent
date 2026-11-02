@@ -38,6 +38,7 @@ from app.modules.teams.router import router as teams_router
 from app.modules.users.permission_router import router as permissions_router
 from app.modules.users.role_router import router as roles_router
 from app.modules.users.user_router import router as users_router
+from app.modules.test.router import router as test_router
 
 logging.basicConfig(
     level=logging.INFO,
@@ -102,6 +103,7 @@ def create_app() -> FastAPI:
     app.include_router(search_router)
     app.include_router(graph_router)
     app.include_router(ai_router)
+    app.include_router(test_router)
     return app
 
 

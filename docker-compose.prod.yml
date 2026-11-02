@@ -1,0 +1,184 @@
+# 生产部署栈（阿里云 ECS）：docker compose -f docker-compose.prod.yml up -d
+#
+# 与开发版 docker-compose.yml 的差异：
+#   1. 去掉所有 GUI（pgadmin / mongo-express / redisinsight / kibana）——省 1G+ 内存
+#   2. 中间件端口不发布到宿主机，仅在内部网络互访；公网只暴露 app:3000 和 rustfs:9000（文件直链）
+#   3. Neo4j 不装 apoc 插件（代码未使用；避免服务器首次启动从 GitHub 下载插件失败导致重启循环）
+#   4. 增加 app 服务（本仓库 Dockerfile 构建）
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: kh_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: 123456
+      POSTGRES_DB: knowledge_hub
+    volumes:
+      - ${DOCKER_VOLUME_DIRECTORY:-.}/volumes/postgres:/var/lib/postgresql/data
+      - ./init-scripts/postgresql:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d knowledge_hub"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  mongodb:
+    image: mongo:7-jammy
+    container_name: kh_mongodb
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: mongo_user
+      MONGO_INITDB_ROOT_PASSWORD: mongo_pass123
+      MONGO_INITDB_DATABASE: knowledge_hub
+    volumes:
+      - ${DOCKER_VOLUME_DIRECTORY:-.}/volumes/mongo:/data/db
+      - ./init-scripts/mongodb:/docker-entrypoint-initdb.d
+    healthcheck:
+      # ping 无需认证（驱动健康探测同款），省掉高负载下 2s+ 的 SCRAM 握手
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 15s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
+
+  redis:
+    image: redis:7-alpine
+    container_name: kh_redis
+    restart: unless-stopped
+    volumes:
+      - ${DOCKER_VOLUME_DIRECTORY:-.}/volumes/redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    container_name: kh_rabbitmq
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+      # 关闭 Erlang 调度器 busy-wait：Docker 里空载烧满 CPU 的已知问题
+      RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: "+sbwt none +sbwtdcpu none +sbwtdio none"
+    volumes:
+      - ${DOCKER_VOLUME_DIRECTORY:-.}/volumes/rabbitmq:/var/lib/rabbitmq
+      - ./rabbitmq.conf:/etc/rabbitmq/conf.d/99-watermark.conf:ro
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+
+  es:
+    build: ./elasticsearch   # 8.17.0 + IK 分词（IK 从 infinilabs 国内 CDN 下载）
+    container_name: kh_elasticsearch
+    restart: always
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - xpack.security.http.ssl.enabled=false
+      - xpack.security.transport.ssl.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    volumes:
+      - ${DOCKER_VOLUME_DIRECTORY:-.}/volumes/es/data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs http://127.0.0.1:9200/_cluster/health >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+
+  # RustFS（S3 兼容对象存储）— PDF 抽图 / 原文件上传
+  # 9000 对公网开放：RUSTFS_PUBLIC_URL 生成的文件直链要让浏览器访问到
+  rustfs:
+    image: rustfs/rustfs:latest
+    container_name: kh_rustfs
+    restart: unless-stopped
+    ports:
+      - "${RUSTFS_PUBLIC_PORT:-9000}:9000" # S3 API（9001 管理台不对公网开放）
+    environment:
+      RUSTFS_VOLUMES: /data/rustfs0
+      RUSTFS_ADDRESS: 0.0.0.0:9000
+      RUSTFS_CONSOLE_ADDRESS: 0.0.0.0:9001
+      RUSTFS_CONSOLE_ENABLE: "true"
+      RUSTFS_ACCESS_KEY: rustfsadmin
+      RUSTFS_SECRET_KEY: rustfsadmin
+      RUSTFS_CORS_ALLOWED_ORIGINS: "*"
+      RUSTFS_UNSAFE_BYPASS_DISK_CHECK: "true"
+    volumes:
+      - ${DOCKER_VOLUME_DIRECTORY:-.}/volumes/rustfs0:/data/rustfs0
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://127.0.0.1:9000/health || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+  neo4j:
+    image: neo4j:2026.04.0
+    container_name: kh_neo4j
+    restart: unless-stopped
+    environment:
+      - NEO4J_AUTH=neo4j/12345678
+    volumes:
+      - ${DOCKER_VOLUME_DIRECTORY:-.}/volumes/neo4j/data:/data
+      - ${DOCKER_VOLUME_DIRECTORY:-.}/volumes/neo4j/logs:/logs
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:7474 >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+
+  app:
+    build:
+      context: .
+      args:
+        PYPI_INDEX_URL: ${PYPI_INDEX_URL:-https://mirrors.aliyun.com/pypi/simple/}
+    container_name: kh_app
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    # .env 提供 API Key / JWT 密钥 / 邮箱等；不存在也能起（AI 能力降级）
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      # 连接地址覆盖为 compose 服务名（进程环境变量优先级高于 .env 文件）
+      POSTGRES_HOST: postgres
+      MONGO_URI: mongodb://mongo_user:mongo_pass123@mongodb:27017/knowledge_hub?authSource=admin
+      REDIS_HOST: redis
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+      ELASTICSEARCH_NODE: http://es:9200
+      NEO4J_URI: bolt://neo4j:7687
+      RUSTFS_ENDPOINT: http://rustfs:9000
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      es:
+        condition: service_healthy
+      rustfs:
+        condition: service_healthy
+      neo4j:
+        condition: service_healthy
+    healthcheck:
+      # 镜像里没有 curl，用 Python 标准库探测（GET / 为根路由）
+      test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://127.0.0.1:3000/', timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+networks:
+  default:
+    name: knowledge-hub

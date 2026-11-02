@@ -69,6 +69,7 @@ class _TurnTracker:
         self.reasoning_id: str | None = None
         self.tool_calls: dict[str, dict] = {}  # call_id → {name, args_str}
         self.tool_started: set[str] = set()
+        self.index_ids: dict[int, str] = {}  # tool_call index → call_id（续传分片无 id）
         self.answer_parts: list[str] = []
 
     def close_text(self) -> None:
@@ -100,17 +101,24 @@ class _TurnTracker:
             self.answer_parts.append(text)
 
         for tc in getattr(chunk, "tool_call_chunks", None) or []:
-            call_id = getattr(tc, "id", None) or ""
+            # tool_call_chunks 元素是 TypedDict（运行时就是 dict），必须键访问；
+            # 续传分片只有 index 没有 id，按 index 找回首片的 call_id 才能拼全 args
+            call_id = tc.get("id") or ""
+            index = tc.get("index")
+            if not call_id and index is not None:
+                call_id = self.index_ids.get(index, "")
             if not call_id:
                 continue
+            if index is not None:
+                self.index_ids[index] = call_id
             entry = self.tool_calls.setdefault(call_id, {"name": "", "args": ""})
-            name = getattr(tc, "name", None)
+            name = tc.get("name")
             if name:
                 entry["name"] = name
                 if call_id not in self.tool_started:
                     self.tool_started.add(call_id)
                     self.emitter.tool_input_start(call_id, name)
-            args = getattr(tc, "args", None)
+            args = tc.get("args")
             if args:
                 entry["args"] += args
 
@@ -131,6 +139,31 @@ class _TurnTracker:
     @property
     def answer(self) -> str:
         return "".join(self.answer_parts).strip()
+
+
+def _tool_output_text(output) -> str:
+    """on_tool_end 的 output 兼容 str / dict / ToolMessage 三种形态。"""
+    content = getattr(output, "content", output)
+    if isinstance(content, str):
+        return content
+    return json.dumps(content, ensure_ascii=False, default=str)
+
+
+def _emit_tools_event(payload: dict, tracker: _TurnTracker, emitter: UiStreamEmitter) -> None:
+    """langgraph tools 流模式事件 → UI 协议帧。
+
+    payload 是 StreamToolCallHandler 推的 dict（event 字段区分四种事件），
+    不是 ToolMessage：tool_call_id 必须从 dict 里取，getattr 只会拿到 None。
+    """
+    kind = payload.get("event")
+    if kind == "tool-started":
+        # 工具开始执行 = 模型回合已定案：收口 text/reasoning，补发 tool-input-available
+        tracker.finish_turn()
+    elif kind == "tool-finished":
+        emitter.tool_output_available(payload.get("tool_call_id") or "", _tool_output_text(payload.get("output")))
+    elif kind == "tool-error":
+        emitter.tool_output_error(payload.get("tool_call_id") or "", payload.get("message") or "工具执行失败")
+    # tool-output-delta：本仓库工具不流式吐增量，忽略
 
 
 async def stream_chat(dto, user: dict) -> AsyncIterator[str]:
@@ -215,6 +248,9 @@ async def stream_chat(dto, user: dict) -> AsyncIterator[str]:
         messages.append(HumanMessage(question))
 
         tracker = _TurnTracker(emitter)
+        from app.modules.ai.trace_log import set_trace_context
+
+        set_trace_context(f"sid={persist_session_id} uid={user['userId']}")
         async for mode, event in agent.astream(
             {"messages": messages}, stream_mode=["messages", "tools"]
         ):
@@ -222,15 +258,8 @@ async def stream_chat(dto, user: dict) -> AsyncIterator[str]:
                 chunk, _metadata = event
                 if isinstance(chunk, AIMessageChunk):
                     tracker.on_chunk(chunk)
-            elif mode == "tools":
-                tool_msg = event
-                # 工具消息到达 = 本轮模型回合结束：收口 text/reasoning/tool-input
-                tracker.finish_turn()
-                tool_call_id = getattr(tool_msg, "tool_call_id", None) or ""
-                output = getattr(tool_msg, "content", "")
-                if not isinstance(output, str):
-                    output = json.dumps(output, ensure_ascii=False)
-                emitter.tool_output_available(tool_call_id, output)
+            elif mode == "tools" and isinstance(event, dict):
+                _emit_tools_event(event, tracker, emitter)
             for line in flush():
                 yield line
         tracker.finish_turn()
